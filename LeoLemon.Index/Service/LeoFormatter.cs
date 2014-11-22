@@ -17,12 +17,12 @@ namespace LeoLemon.Index.Service
         }
         public string FormatDate(string day, string month, string year)
         {
-            return "00/00/0000";
+            return string.Format("{0}/{1}/{2}", day, month, year);
         }
 
         public string FormatNumber(string number, string fraction = "")
         {
-            return "0.000";
+            return number + ", " + fraction;
         }
 
         public string FormatPhrase(string[] item)
@@ -42,12 +42,12 @@ namespace LeoLemon.Index.Service
 
         public string FormatCurrency(string currency, string value, string fraction = "", string addition = "")
         {
-            return "Dollars 12.50";
+            return string.Format("{0} {1} {2} {3}");
         }
 
         public string FormatPrecentages(string number)
         {
-            return "0%";
+            return number + "%";
         }
     }
 }

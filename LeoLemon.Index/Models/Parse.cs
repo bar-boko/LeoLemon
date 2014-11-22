@@ -38,12 +38,7 @@ namespace LeoLemon.Index.Models
         private Regex _Regex_Year4 = new Regex(@"^\d{4}$");
         private Regex _Regex_Year2 = new Regex(@"^\d{2}$");
         private Regex _Regex_YearComma = new Regex(@"^(,)\d{4}$");
-        private Regex _Regex_Month = new Regex(@"^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|"
-                                              + "jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|"
-                                              + "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|"
-                                              + "JANUARY|FEBRUARY|MARCH|APRIL|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|"
-                                              + "january|february|march|april|june|july|august|september|october|november|december|"
-                                              + "January|February|March|April|June|July|August|September|October|November|December)$");
+        private Regex _Regex_Month = new Regex(@"^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JANUARY|FEBRUARY|MARCH|APRIL|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|january|february|march|april|june|july|august|september|october|november|december|January|February|March|April|June|July|August|September|October|November|December)$");
         private Regex _Regex_Month_Year = new Regex(@"^\d{2}$");
         private Regex _Regex_Day = new Regex(@"^\d{1,2}$");
         private Regex _Regex_DayTH = new Regex(@"^\d{1,2}(th|rd|nd|st)$");
@@ -136,35 +131,48 @@ namespace LeoLemon.Index.Models
 
                 switch (tokenT)
                 {
+                    #region UNKNOWN
                     case TokenType.UNKNOWN:
                         result.Add(temp);
                         i++;
                         break;
-                    case TokenType.THROWAWAY: break;
+                    #endregion
+
+                    #region THROWAWAY
+                    case TokenType.THROWAWAY:
+                        i++;
+                        break;
                     case TokenType.YEAR4:
                         temp = _Formatter.FormatDate("", "", temp);
                         result.Add(temp);
                         i++;
                         break;
+                    #endregion
+
+                    #region WORD
                     case TokenType.WORD:
                         temp = _Formatter.FormatWord(temp);
                         result.Add(temp);
                         i++;
                         break;
+                    #endregion
+
+                    #region PHRASE
                     case TokenType.PHRASE:
                         {
                             List<string> phrases = new List<string>();
                             phrases.Add(temp);
 
                             j = i + 1;
+
                             if (i + 1 < tokens.Length)
                                 if (i + 2 < tokens.Length)
                                     tokenT = Classify(tokens[i + 1], tokens[i + 2]);
                                 else
                                     tokenT = Classify(tokens[i + 1], "");
-                            tokenT = Classify(tokens[i + 1], tokens[i + 2]);
 
-                            while (j < tokens.Length && tokenT != TokenType.PHRASE)
+
+                            while (j < tokens.Length && tokenT == TokenType.PHRASE)
                             {
                                 phrases.Add(tokens[j]);
                                 j++;
@@ -180,6 +188,9 @@ namespace LeoLemon.Index.Models
                             result.Add(_Formatter.FormatPhrase(phrases.ToArray()));
                         }
                         break;
+                    #endregion
+
+                    #region NAME
                     case TokenType.NAME:
                         {
                             List<string> names = new List<string>();
@@ -191,9 +202,8 @@ namespace LeoLemon.Index.Models
                                     tokenT = Classify(tokens[i + 1], tokens[i + 2]);
                                 else
                                     tokenT = Classify(tokens[i + 1], "");
-                            tokenT = Classify(tokens[i + 1], tokens[i + 2]);
 
-                            while (j < tokens.Length && tokenT != TokenType.NAME)
+                            while (j < tokens.Length && tokenT == TokenType.NAME)
                             {
                                 names.Add(tokens[j]);
                                 j++;
@@ -209,12 +219,17 @@ namespace LeoLemon.Index.Models
                             result.Add(_Formatter.FormatPhrase(names.ToArray()));
                         }
                         break;
+                    #endregion
 
+                    #region EXPRESSION
                     case TokenType.EXPRESSION:
                         string[] exps = temp.Split('-');
                         result.Add(_Formatter.FormatExpression(exps));
                         i++;
                         break;
+                    #endregion
+
+                    #region NUMBER
                     case TokenType.NUMBER:
                         string value = temp;
                         if (i + 1 < tokens.Length)
@@ -230,6 +245,9 @@ namespace LeoLemon.Index.Models
                             result.Add(_Formatter.FormatNumber(value, fraction));
                         }
                         break;
+                    #endregion
+
+                    #region PRECENTAGE
                     case TokenType.PRECENTAGE:
 
                         if (!_Regex_Number.Match(temp).Success)
@@ -242,7 +260,9 @@ namespace LeoLemon.Index.Models
                         result.Add(_Formatter.FormatPrecentages(temp));
 
                         break;
+                    #endregion
 
+                    #region CURRENCY
                     case TokenType.CURRENCY:
 
                         string currency = temp;
@@ -284,6 +304,9 @@ namespace LeoLemon.Index.Models
                             i += 2;
                         }
                         break;
+                    #endregion
+
+                    #region DAYth
                     case TokenType.DAYth:
                         {
                             string day = temp.Substring(0, 2);
@@ -294,6 +317,9 @@ namespace LeoLemon.Index.Models
                             i += 3;
                         }
                         break;
+                    #endregion
+
+                    #region MONTH
                     case TokenType.MONTH:
                         {
                             string month = temp;
@@ -329,6 +355,25 @@ namespace LeoLemon.Index.Models
                             }
                         }
                         break;
+                    #endregion
+
+                    #region DAY
+                    case TokenType.DAY:
+                        {
+                            string day = temp;
+                            string month = tokens[i + 1];
+                            string year = "";
+                            if (i + 2 < tokens.Length)
+                                year = tokens[i + 2];
+
+                            result.Add(_Formatter.FormatDate(day, month, year));
+                            if (year != "")
+                                i += 3;
+                            else
+                                i += 2;
+                        }
+                        break;
+                    #endregion
                 }
 
                 
