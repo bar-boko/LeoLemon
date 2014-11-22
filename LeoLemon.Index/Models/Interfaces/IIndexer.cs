@@ -9,6 +9,6 @@ namespace LeoLemon.Index.Models.Interfaces
 {
     public interface IIndexer
     {
-        void IndexAndPost(ParsedDoc document);
+        void IndexAndPost(Doc document);
     }
 }

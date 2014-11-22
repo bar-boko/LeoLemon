@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LeoLemon.Index.Structures;
 
 namespace LeoLemon.Index.Models
 {
@@ -18,29 +19,37 @@ namespace LeoLemon.Index.Models
             _stopWord = new HashSet<string>();
             _Reader = new StreamReader(path);
 
-            char[] seperator = new char[2];
-            seperator[0] = ' ';
-            seperator[1] = '\n';
-              string[] stopList = (_Reader.ToString().Split(seperator, StringSplitOptions.RemoveEmptyEntries));
+            {
+                List<string> lst = new List<string>();
 
-            foreach (string item in stopList)
-                _stopWord.Add(item);
-            
+                while (!_Reader.EndOfStream)
+                    lst.Add(_Reader.ReadLine());
+
+                foreach (string str in lst)
+                {
+                    string[] splitted = str.Split(' ');
+                    foreach (string s in splitted)
+                        _stopWord.Add(s);
+                }
+            }
+
         }
 
-        public void RemoveStopWords(Structures.ParsedDoc doc)
+        public void RemoveStopWords(Doc doc, bool isUpper = false)
         {
             List<string> clearList = new List<string>();
             foreach(string item in doc.Text)
             {
-                if (!_stopWord.Contains(item))
-                {
+                string str = item;
+                if (isUpper)
+                    str = item.ToLower();
+                    
+
+                if (!_stopWord.Contains(str))
                     clearList.Add(item);
-                }
 
             }
             doc.Text = clearList.ToArray(); 
-            
         }
     }
 }

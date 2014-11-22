@@ -43,12 +43,14 @@
     <Compile Include="Models\Interfaces\IParse.cs" />
     <Compile Include="Models\Interfaces\IReadFile.cs" />
     <Compile Include="Models\Interfaces\IStopWordRemover.cs" />
+    <Compile Include="Models\Parse.cs" />
     <Compile Include="Models\ReadFile.cs" />
+    <Compile Include="Models\Stemmer.cs" />
     <Compile Include="Models\StopWordRemover.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Structures\AbstractDoc.cs" />
-    <Compile Include="Structures\ParsedDoc.cs" />
-    <Compile Include="Structures\StreamDoc.cs" />
+    <Compile Include="Service\IFormat.cs" />
+    <Compile Include="Service\LeoFormatter.cs" />
+    <Compile Include="Structures\Doc.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

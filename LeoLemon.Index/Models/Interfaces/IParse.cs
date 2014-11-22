@@ -9,6 +9,6 @@ namespace LeoLemon.Index.Models.Interfaces
 {
     public interface IParse
     {
-        ParsedDoc Execute(StreamDoc document);
+        void Execute(Doc document);
     }
 }

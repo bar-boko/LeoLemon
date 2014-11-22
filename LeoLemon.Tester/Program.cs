@@ -12,7 +12,6 @@ namespace LeoLemon.Tester
         static void Main(string[] args)
         {
             string filePath = "./Docs/";
-            string stopWords = "";
             
             ReadFile _reader = new ReadFile(filePath);
             _reader.Execute();
