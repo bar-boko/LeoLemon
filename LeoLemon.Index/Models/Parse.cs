@@ -92,7 +92,7 @@ namespace LeoLemon.Index.Models
                 return TokenType.UNKNOWN;
             }
 
-            if (_Regex_DayTH.Match(str).Success) return TokenType.DAYth;
+            if (_Regex_DayTH.Match(str).Success && _Regex_Month.Match(helper).Success) return TokenType.DAYth;
             if (_Regex_Month.Match(str).Success) return TokenType.MONTH;
             if (_Regex_Currency.Match(str).Success) return TokenType.CURRENCY;
 
@@ -244,6 +244,8 @@ namespace LeoLemon.Index.Models
                                 i++;
                             result.Add(_Formatter.FormatNumber(value, fraction));
                         }
+                        else
+                            i++;
                         break;
                     #endregion
 
