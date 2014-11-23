@@ -17,18 +17,18 @@ namespace LeoLemon.Index.Service
             IsStemming = true;
             months = new Dictionary<string, int>();
             #region months
-            months.Add("JAN", 01); months.Add("Jan", 01); months.Add("jan", 01); months.Add("JANUARY", 01); months.Add("january", 01); months.Add("January", 01);
-            months.Add("FEB", 02); months.Add("Feb", 02); months.Add("feb", 02); months.Add("FEBRUARY", 02); months.Add("february", 02); months.Add("February", 02);
-            months.Add("MAR", 03); months.Add("Mar", 03); months.Add("mar", 03); months.Add("MARCH", 03); months.Add("march", 03); months.Add("March", 03);
-            months.Add("APR", 01); months.Add("Apr", 01); months.Add("apr", 04); months.Add("APRIL", 04); months.Add("april", 04); months.Add("April", 04);
-            months.Add("MAY", 01); months.Add("May", 01); months.Add("may", 05);
-            months.Add("JUN", 01); months.Add("Jun", 01); months.Add("jun", 06); months.Add("JULN", 06); months.Add("june", 06); months.Add("June", 06);
-            months.Add("JUL", 01); months.Add("Jul", 01); months.Add("jul", 07); months.Add("JULY", 07); months.Add("july", 07); months.Add("July", 07);
-            months.Add("AUG", 01); months.Add("Aug", 01); months.Add("aug", 08); months.Add("AUGUST", 08); months.Add("august", 08); months.Add("August", 08);
-            months.Add("SEP", 01); months.Add("Sep", 01); months.Add("sep", 09); months.Add("SEPTEMBER", 09); months.Add("september", 09); months.Add("September", 09);
-            months.Add("OCT", 01); months.Add("Oct", 01); months.Add("oct", 10); months.Add("OCTOBER", 10); months.Add("october", 10); months.Add("October", 10);
-            months.Add("NOV", 01); months.Add("Nov", 01); months.Add("nov", 11); months.Add("NOVEMBER", 11); months.Add("november", 11); months.Add("November", 11);
-            months.Add("DEC", 01); months.Add("Dec", 01); months.Add("dec", 12); months.Add("DECEMBER", 12); months.Add("december", 12); months.Add("December", 12);
+            months.Add("JAN", 1); months.Add("Jan", 1); months.Add("jan", 1); months.Add("JANUARY", 1); months.Add("january", 1); months.Add("January", 1);
+            months.Add("FEB", 2); months.Add("Feb", 2); months.Add("feb", 2); months.Add("FEBRUARY", 2); months.Add("february", 2); months.Add("February", 2);
+            months.Add("MAR", 3); months.Add("Mar", 3); months.Add("mar", 3); months.Add("MARCH", 3); months.Add("march", 3); months.Add("March", 3);
+            months.Add("APR", 4); months.Add("Apr", 4); months.Add("apr", 4); months.Add("APRIL", 4); months.Add("april", 4); months.Add("April", 4);
+            months.Add("MAY", 5); months.Add("May", 5); months.Add("may", 5);
+            months.Add("JUN", 6); months.Add("Jun", 6); months.Add("jun", 6); months.Add("JULN", 6); months.Add("june", 6); months.Add("June", 6);
+            months.Add("JUL", 7); months.Add("Jul", 7); months.Add("jul", 7); months.Add("JULY", 7); months.Add("july", 7); months.Add("July", 7);
+            months.Add("AUG", 8); months.Add("Aug", 8); months.Add("aug", 8); months.Add("AUGUST", 8); months.Add("august", 8); months.Add("August", 8);
+            months.Add("SEP", 9); months.Add("Sep", 9); months.Add("sep", 9); months.Add("SEPTEMBER", 9); months.Add("september", 9); months.Add("September", 9);
+            months.Add("OCT", 10); months.Add("Oct", 10); months.Add("oct", 10); months.Add("OCTOBER", 10); months.Add("october", 10); months.Add("October", 10);
+            months.Add("NOV", 11); months.Add("Nov", 11); months.Add("nov", 11); months.Add("NOVEMBER", 11); months.Add("november", 11); months.Add("November", 11);
+            months.Add("DEC", 12); months.Add("Dec", 12); months.Add("dec", 12); months.Add("DECEMBER", 12); months.Add("december", 12); months.Add("December", 12);
             #endregion
         }
 
@@ -124,7 +124,7 @@ namespace LeoLemon.Index.Service
 
         public string FormatCurrency(string currency, string value, string fraction = "", string addition = "")
         {
-            return string.Format("{0} {1} {2} {3}");
+            return string.Format("${0} {1} {2} {3}");
         }
 
         public string FormatPrecentages(string number)
