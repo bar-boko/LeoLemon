@@ -37,19 +37,26 @@ namespace LeoLemon.Index.Models
 
         public void RemoveStopWords(Doc doc, bool isUpper = false)
         {
+            doc.Text = RemoveStopWordsArray(doc.Text, isUpper);
+            doc.Header = RemoveStopWordsArray(doc.Header, isUpper);
+        }
+
+        private string[] RemoveStopWordsArray(string[] array, bool isUpper = false)
+        {
+            if (array == null)
+                return null;
             List<string> clearList = new List<string>();
-            foreach(string item in doc.Text)
+            foreach (string item in array)
             {
                 string str = item;
                 if (isUpper)
                     str = item.ToLower();
-                    
 
                 if (!_stopWord.Contains(str))
                     clearList.Add(item);
 
             }
-            doc.Text = clearList.ToArray(); 
+            return clearList.ToArray(); 
         }
     }
 }

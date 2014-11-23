@@ -30,11 +30,11 @@ namespace LeoLemon.Index.Models
         }
 
         #region REGEXes
-        private Regex _Regex_Number = new Regex(@"^(\d)$");
-        private Regex _Regex_NumberFloat = new Regex(@"^(\d.\d)$");
+        private Regex _Regex_Number = new Regex(@"^(-)?(\d)$");
+        private Regex _Regex_NumberFloat = new Regex(@"^(-)?(\d.\d)$");
         private Regex _Regex_NumberFraction = new Regex(@"^(\d/\d)$");
         private Regex _Regex_NumberFraction2 = new Regex(@"^(\d\\\d)$");
-        private Regex _Regex_NumberThousands = new Regex(@"^(d{1,3}((,)d{3})*)$");
+        private Regex _Regex_NumberThousands = new Regex(@"^(-)?(\d{1,3}((,)\d{3})*)$");
         private Regex _Regex_Year4 = new Regex(@"^\d{4}$");
         private Regex _Regex_Year2 = new Regex(@"^\d{2}$");
         private Regex _Regex_YearComma = new Regex(@"^(,)\d{4}$");
@@ -52,6 +52,7 @@ namespace LeoLemon.Index.Models
         private Regex _Regex_ThrowAway = new Regex(@"^[/\,.]$");
         private Regex _Regex_Currency = new Regex(@"^([A-Z]*)(Dollars|Pounds)$");
         private Regex _Regex_CurrenctAddition = new Regex(@"(m|bn)$");
+        private Regex _Regex_DelimiterText = new Regex(@"^(-)+$");
         #endregion
 
         public Parse(StopWordRemover remover)
@@ -81,7 +82,9 @@ namespace LeoLemon.Index.Models
             if (_Regex_Name.Match(str).Success) return TokenType.NAME;
             if (_Regex_Precentage.Match(str).Success) return TokenType.PRECENTAGE;
             if (_Regex_Word.Match(str).Success) return TokenType.WORD;
-            if (_Regex_ThrowAway.Match(str).Success) return TokenType.THROWAWAY;
+            if (_Regex_NumberFraction.Match(str).Success) return TokenType.FRACTION;
+            if (_Regex_NumberThousands.Match(str).Success) return TokenType.NUMBER;
+            if (_Regex_ThrowAway.Match(str).Success || _Regex_DelimiterText.Match(str).Success) return TokenType.THROWAWAY;
             if (_Regex_Year4.Match(str).Success)
                 return TokenType.YEAR4;
 
@@ -133,7 +136,7 @@ namespace LeoLemon.Index.Models
                 {
                     #region UNKNOWN
                     case TokenType.UNKNOWN:
-                        result.Add(temp);
+                        result.Add(_Formatter.FormatUnknown(temp));
                         i++;
                         break;
                     #endregion
@@ -373,6 +376,15 @@ namespace LeoLemon.Index.Models
                                 i += 3;
                             else
                                 i += 2;
+                        }
+                        break;
+                    #endregion
+
+                    #region FRACTION
+                    case TokenType.FRACTION:
+                        {
+                            result.Add(_Formatter.FormatNumber("", temp));
+                            i++;
                         }
                         break;
                     #endregion
