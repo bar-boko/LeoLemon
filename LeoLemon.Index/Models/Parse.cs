@@ -83,7 +83,6 @@ namespace LeoLemon.Index.Models
             if (_Regex_Precentage.Match(str).Success) return TokenType.PRECENTAGE;
             if (_Regex_Word.Match(str).Success) return TokenType.WORD;
             if (_Regex_NumberFraction.Match(str).Success) return TokenType.FRACTION;
-            if (_Regex_NumberThousands.Match(str).Success) return TokenType.NUMBER;
             if (_Regex_ThrowAway.Match(str).Success || _Regex_DelimiterText.Match(str).Success) return TokenType.THROWAWAY;
             if (_Regex_Year4.Match(str).Success)
                 return TokenType.YEAR4;
