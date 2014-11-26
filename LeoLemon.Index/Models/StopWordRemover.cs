@@ -56,7 +56,7 @@ namespace LeoLemon.Index.Models
                 str = str.TrimEnd(").,!?;:/\\'".ToCharArray());
 
                 if (!_stopWord.Contains(str))
-                    clearList.Add(item);
+                    clearList.Add(str);
 
             }
             return clearList.ToArray(); 

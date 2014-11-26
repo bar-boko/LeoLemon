@@ -47,7 +47,7 @@ namespace LeoLemon.Index.Models
         private Regex _Regex_PrecentagePlus = new Regex(@"^(%|Precentage|precentages|prcenetage|PRECENTAGE|PRECENTAGES|Precentages)$");
         private Regex _Regex_Phrase = new Regex(@"^(([A-Z]+ |[A-Z]+))+$");
         private Regex _Regex_Name = new Regex(@"^(([A-Z][a-z]+ |[A-Z][a-z]*))+$");
-        private Regex _Regex_Expression = new Regex(@"^([A-Z]([a-z])+)*(-)([A-Z]([a-z])+)$");
+        private Regex _Regex_Expression = new Regex(@"^(([a-zA-Z])+)((-)([a-zA-Z])+)+$");
         private Regex _Regex_Word = new Regex(@"[a-z]+$");
         private Regex _Regex_ThrowAway = new Regex(@"^[/\,.]$");
         private Regex _Regex_Currency = new Regex(@"^([A-Z]*)(Dollars|Pounds)$");

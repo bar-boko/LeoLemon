@@ -63,7 +63,7 @@ namespace LeoLemon.Index.Service
                 yearNum = 0;
             }
 
-            return String.Format("~{0}{1}{2}", dayNum.ToString("D2"), monthNum.ToString("D2"), yearNum.ToString("D4"));
+            return String.Format("~[{0}{1}{2}]", dayNum.ToString("D2"), monthNum.ToString("D2"), yearNum.ToString("D4"));
         }
 
         public string FormatNumber(string number, string fraction = "")
@@ -81,12 +81,12 @@ namespace LeoLemon.Index.Service
                 fracNum = FractionToDouble(fraction);
             result = num + fracNum;
 
-            return String.Format("#" + "{0:#.000}", result);
+            return String.Format("#[{0:#.000}]", result);
         }
 
         public string FormatPhrase(string[] item)
         {
-            string result = "!";
+            string result = "![";
             for (int i = 0; i < item.Length; i++)
             {
                 item[i] = item[i].ToLower();
@@ -95,24 +95,24 @@ namespace LeoLemon.Index.Service
                         result += _stem.stemTerm(item[i]);
             }
 
-            return result;
+            return result+"]";
         }
 
         public string FormatNames(string[] item)
         {
-            string result = "^";
+            string result = "^[";
             for (int i = 0; i < item.Length; i++)
             {
                 item[i] = item[i].ToLower();
                 result += _stem.stemTerm(item[i]);
             }
 
-            return result;
+            return result+"]";
         }
 
         public string FormatExpression(string[] item)
         {
-            string result = "&";
+            string result = "&[";
             for (int i = 0; i < item.Length; i++)
             {
                 item[i] = item[i].ToLower();
@@ -122,7 +122,7 @@ namespace LeoLemon.Index.Service
                     result += " ";
             }
 
-            return result;
+            return result+"]";
         }
 
 
@@ -145,7 +145,7 @@ namespace LeoLemon.Index.Service
 
         public string FormatPrecentages(string number)
         {
-            return String.Format("%" + "{0:#.000}", number);
+            return String.Format("%" + "[{0:#.000}]", number);
         }
 
         public string FormatUnknown(string word)
