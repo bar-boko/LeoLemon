@@ -31,7 +31,7 @@ namespace LeoLemon.Index.Models
 
         #region REGEXes
         private Regex _Regex_Number = new Regex(@"^(-)?(\d)$");
-        private Regex _Regex_NumberFloat = new Regex(@"^(-)?(\d.\d)$");
+        private Regex _Regex_NumberFloat = new Regex(@"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$");
         private Regex _Regex_NumberFraction = new Regex(@"^(\d/\d)$");
         private Regex _Regex_NumberFraction2 = new Regex(@"^(\d\\\d)$");
         private Regex _Regex_NumberThousands = new Regex(@"^(-)?(\d{1,3}((,)\d{3})*)$");
@@ -47,8 +47,8 @@ namespace LeoLemon.Index.Models
         private Regex _Regex_PrecentagePlus = new Regex(@"^(%|Precentage|precentages|prcenetage|PRECENTAGE|PRECENTAGES|Precentages)$");
         private Regex _Regex_Phrase = new Regex(@"^(([A-Z]+ |[A-Z]+))+$");
         private Regex _Regex_Name = new Regex(@"^(([A-Z][a-z]+ |[A-Z][a-z]*))+$");
-        private Regex _Regex_Expression = new Regex(@"^([A-Z](a-z)+)*(-)([A-Z](a-z)+)$");
-        private Regex _Regex_Word = new Regex(@"^[a-z]+$");
+        private Regex _Regex_Expression = new Regex(@"^([A-Z]([a-z])+)*(-)([A-Z]([a-z])+)$");
+        private Regex _Regex_Word = new Regex(@"[a-z]+$");
         private Regex _Regex_ThrowAway = new Regex(@"^[/\,.]$");
         private Regex _Regex_Currency = new Regex(@"^([A-Z]*)(Dollars|Pounds)$");
         private Regex _Regex_CurrenctAddition = new Regex(@"(m|bn)$");
@@ -72,18 +72,28 @@ namespace LeoLemon.Index.Models
 
         public TokenType Classify(string str, string helper)
         {
+            if (str == "") return TokenType.THROWAWAY;
+
             if (_Regex_NumbersGarbage.Match(str).Success)
             {
                 return Classify(str.Substring(0, str.Length - 1), helper);
             }
 
+
+            if (helper != "" && _Regex_Currency.Match(str).Success) return TokenType.CURRENCY;
+            if (_Regex_DayTH.Match(str).Success && _Regex_Month.Match(helper).Success) return TokenType.DAYth;
+            if (helper != "" && _Regex_Month.Match(str).Success ) return TokenType.MONTH;
+
             if (_Regex_Expression.Match(str).Success) return TokenType.EXPRESSION;
             if (_Regex_Phrase.Match(str).Success) return TokenType.PHRASE;
             if (_Regex_Name.Match(str).Success) return TokenType.NAME;
+
             if (_Regex_Precentage.Match(str).Success) return TokenType.PRECENTAGE;
             if (_Regex_Word.Match(str).Success) return TokenType.WORD;
             if (_Regex_NumberFraction.Match(str).Success) return TokenType.FRACTION;
+
             if (_Regex_ThrowAway.Match(str).Success || _Regex_DelimiterText.Match(str).Success) return TokenType.THROWAWAY;
+
             if (_Regex_Year4.Match(str).Success)
                 return TokenType.YEAR4;
 
@@ -93,10 +103,6 @@ namespace LeoLemon.Index.Models
                 if (_Regex_Number.Match(str).Success || _Regex_NumberThousands.Match(str).Success) return TokenType.NUMBER;
                 return TokenType.UNKNOWN;
             }
-
-            if (_Regex_DayTH.Match(str).Success && _Regex_Month.Match(helper).Success) return TokenType.DAYth;
-            if (_Regex_Month.Match(str).Success) return TokenType.MONTH;
-            if (_Regex_Currency.Match(str).Success) return TokenType.CURRENCY;
 
             if (_Regex_Day.Match(str).Success)
             {
@@ -185,7 +191,13 @@ namespace LeoLemon.Index.Models
                                     else
                                         tokenT = Classify(tokens[j + 1], "");
                             }
+
                             i = j;
+
+
+                            for (int idx = 0; idx < phrases.Count; idx++)
+                                if (_Remover.InStopWords(phrases[idx]))
+                                    phrases.Remove(phrases[idx]);
 
                             result.Add(_Formatter.FormatPhrase(phrases.ToArray()));
                         }
@@ -218,7 +230,12 @@ namespace LeoLemon.Index.Models
                             }
                             i = j;
 
-                            result.Add(_Formatter.FormatPhrase(names.ToArray()));
+                            string tempStr = "";
+                            foreach (string s in names)
+                                tempStr += s + " ";
+
+                            if(!_Remover.InStopWords(tempStr.Trim()))
+                                result.Add(_Formatter.FormatNames(names.ToArray()));
                         }
                         break;
                     #endregion
@@ -295,17 +312,11 @@ namespace LeoLemon.Index.Models
                         }
                         else
                         {
-                            string addition = tokens[i + 1].Substring(tokens[i + 1].Length - 3, 2);
-                            if (addition == "bn")
-                            {
-                                result.Add(_Formatter.FormatCurrency(currency, val, "", "bn"));
-                            }
-                            else
-                            {
-                                result.Add(_Formatter.FormatCurrency(currency, val, "", "m"));
-                            }
+                                string addition = _Regex_Word.Match(tokens[i + 1]).Value;
+                                val = val.Substring(0, val.Length - addition.Length);
+                                result.Add(_Formatter.FormatCurrency(currency, val, "", addition));
 
-                            i += 2;
+                                i += 2;
                         }
                         break;
                     #endregion

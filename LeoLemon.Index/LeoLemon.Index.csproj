@@ -43,6 +43,7 @@
     <Compile Include="Models\Interfaces\IParse.cs" />
     <Compile Include="Models\Interfaces\IReadFile.cs" />
     <Compile Include="Models\Interfaces\IStopWordRemover.cs" />
+    <Compile Include="Models\LogFiler.cs" />
     <Compile Include="Models\Parse.cs" />
     <Compile Include="Models\ReadFile.cs" />
     <Compile Include="Models\Stemmer.cs" />

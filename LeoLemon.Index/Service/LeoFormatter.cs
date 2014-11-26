@@ -38,16 +38,30 @@ namespace LeoLemon.Index.Service
         }
         public string FormatDate(string day, string month, string year)
         {
-            int yearNum = Convert.ToInt32(year);
+            int yearNum = 0;
+            try
+            { 
+            yearNum = Convert.ToInt32(year);
             if (yearNum < 100) yearNum = yearNum + 1900;
+            }
+            catch
+            {
+                yearNum = 0;
+            }
 
             int monthNum = 0;
             if (months.ContainsKey(month))
                 monthNum = months[month];
 
             int dayNum = 0;
-            if (day != "")
-                dayNum = Convert.ToInt32(day);
+            try
+            {
+                yearNum = Convert.ToInt32(day);
+            }
+            catch
+            {
+                yearNum = 0;
+            }
 
             return String.Format("~{0}{1}{2}", dayNum.ToString("D2"), monthNum.ToString("D2"), yearNum.ToString("D4"));
         }
@@ -59,7 +73,7 @@ namespace LeoLemon.Index.Service
             if (number == "")
                 number = "0";
 
-            if (number.IndexOf('.') == number.Length - 1)
+            if (number[number.Length - 1] == '.' || number[number.Length - 1] == ',')
                 number = number.Substring(0, number.Length - 1);
 
             double num = Convert.ToDouble(number);
@@ -104,6 +118,8 @@ namespace LeoLemon.Index.Service
                 item[i] = item[i].ToLower();
                 if (IsStemming)
                     result += _stem.stemTerm(item[i]);
+                if (i+1 < item.Length)
+                    result += " ";
             }
 
             return result;
@@ -124,7 +140,7 @@ namespace LeoLemon.Index.Service
 
         public string FormatCurrency(string currency, string value, string fraction = "", string addition = "")
         {
-            return string.Format("${0} {1} {2} {3}");
+            return string.Format("${0}[{1} {2}{3}]", currency, value, fraction, addition);
         }
 
         public string FormatPrecentages(string number)

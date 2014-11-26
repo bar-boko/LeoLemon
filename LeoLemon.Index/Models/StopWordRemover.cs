@@ -52,11 +52,20 @@ namespace LeoLemon.Index.Models
                 if (isUpper)
                     str = item.ToLower();
 
+                str = str.TrimStart("(.,!?;:/\\'".ToCharArray());
+                str = str.TrimEnd(").,!?;:/\\'".ToCharArray());
+
                 if (!_stopWord.Contains(str))
                     clearList.Add(item);
 
             }
             return clearList.ToArray(); 
+        }
+
+        public bool InStopWords(string str)
+        {
+            str = str.ToLower();
+            return _stopWord.Contains(str);
         }
     }
 }
