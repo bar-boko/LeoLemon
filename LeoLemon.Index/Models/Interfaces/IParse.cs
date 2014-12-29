@@ -1,14 +1,20 @@
 ﻿using LeoLemon.Index.Structures;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LeoLemon.Index.Models.Interfaces
 {
+
+    /// <summary>
+    /// IParse interface 
+    /// </summary>
     public interface IParse
     {
-        void Execute(Doc document);
+
+        /// <summary>
+        /// Executes the LeoLemon Parse.
+        /// </summary>
+        /// <param name="document">The document.</param>
+        /// <param name="result">The result.</param>
+        void Execute(Doc document, ref Dictionary<string, List<int>> result);
     }
 }

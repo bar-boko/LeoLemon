@@ -1,14 +1,18 @@
 ﻿using LeoLemon.Index.Structures;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LeoLemon.Index.Models.Interfaces
 {
+
+    /// <summary>
+    /// IIndexer interface 
+    /// </summary>
     public interface IIndexer
     {
+        /// <summary>
+        /// Indexes the and post.
+        /// </summary>
+        /// <param name="document">The document.</param>
         void IndexAndPost(Doc document);
     }
 }

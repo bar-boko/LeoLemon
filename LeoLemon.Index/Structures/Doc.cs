@@ -1,31 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace LeoLemon.Index.Structures
 {
+
+    /// <summary>
+    /// Class Doc is a structure for the Documents
+    /// extracted from the files 
+    /// </summary>
     public class Doc
     {
-        public string DocID { get; set; }
 
+        /// <summary>
+        /// Gets or sets the document identifier.
+        /// </summary>
+        /// <value>
+        /// The document identifier.
+        /// DocId - Serial Number of the Doc
+        /// Date 
+        /// Header
+        /// Text 
+        /// </value>
+        public string DocId { get; set; }
         public DateTime Date { get; set; }
-
-        public string[] Header { get; set; }
-
-        public string[] Text { get; set; }
+        public List<string> Header { get; set; }
+        public List<string> Text { get; set; }
 
 
+        /// <summary>
+        /// Initializes a new instance of the class Doc.
+        /// </summary>
         public Doc()  { }
+
+
+        /// <summary>
+        /// Initializes a new instance of the DOC class.
+        /// </summary>
+        /// <param name="docID">The document identifier.</param>
+        /// <param name="date">The date.</param>
+        /// <param name="header">The header.</param>
+        /// <param name="text">The text.</param>
+        /// <exception cref="System.ArgumentNullException">docID</exception>
         public Doc(string docID, string date, string[] header, string[] text) 
         {
-            Text = text;
-            DocID = docID;
-            Header = header;
+            if (docID == null) throw new ArgumentNullException("docID");
+            Text = new List<string>(text);
+            DocId = docID;
+            Header = new List<string>(header);
             Date = ParseDate(date);
         }
 
+
+        /// <summary>
+        /// Parses the date string.
+        /// </summary>
+        /// <param name="date">The date.</param>
+        /// <returns></returns>
         public DateTime ParseDate(string date)
         {
             string year = date.Substring(0, 2);

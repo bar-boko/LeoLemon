@@ -1,7 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
+using LeoLemon.Index.Models.Interfaces;
 //using System.Windows.Forms;
 
 //[assembly: AssemblyTitle("")]
@@ -60,7 +59,7 @@ namespace LeoLemon.Index.Models
 	   
        1. Create a stong name: 		
             sn -k Keyfile.snk  
-       2. Compile the C# class, which creates an assembly PorterStemmerAlgorithm.dll
+       2. Compile the C! class, which creates an assembly PorterStemmerAlgorithm.dll
             csc /t:library PorterStemmerAlgorithm.cs
        3. Register the dll with the Windows Registry 
           and so expose the interface to COM Clients via the type library 
@@ -90,16 +89,11 @@ namespace LeoLemon.Index.Models
       * by calling one of the various stem(something) methods.
       */
 
-    public interface StemmerInterface
-    {
-        string stemTerm(string s);
-    }
-
 
 
 
     [ClassInterface(ClassInterfaceType.None)]
-    public class Stemmer : StemmerInterface
+    public class Stemmer : IStemmerInterface
     {
         private char[] b;
         private int i,     /* offset into b */

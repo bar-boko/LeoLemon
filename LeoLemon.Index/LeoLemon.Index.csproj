@@ -39,17 +39,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Interfaces\IFileRecord.cs" />
+    <Compile Include="Models\PostingReader.cs" />
+    <Compile Include="Structures\DictionaryRecord.cs" />
+    <Compile Include="Structures\DocumentRecord.cs" />
+    <Compile Include="Models\IndexDictionary.cs" />
+    <Compile Include="Models\IndexDocument.cs" />
+    <Compile Include="Models\IndexPosting.cs" />
+    <Compile Include="Models\Interfaces\IFileStructure.cs" />
     <Compile Include="Models\Interfaces\IIndexer.cs" />
     <Compile Include="Models\Interfaces\IParse.cs" />
     <Compile Include="Models\Interfaces\IReadFile.cs" />
     <Compile Include="Models\Interfaces\IStopWordRemover.cs" />
-    <Compile Include="Models\LogFiler.cs" />
+    <Compile Include="Models\Interfaces\IStemmerInterface.cs" />
     <Compile Include="Models\Parse.cs" />
+    <Compile Include="Structures\PostingRecord.cs" />
     <Compile Include="Models\ReadFile.cs" />
     <Compile Include="Models\Stemmer.cs" />
     <Compile Include="Models\StopWordRemover.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service\IFormat.cs" />
+    <Compile Include="Service\DynaminBuffer.cs" />
+    <Compile Include="Service\Identifier.cs" />
+    <Compile Include="Models\Interfaces\IFormat.cs" />
     <Compile Include="Service\LeoFormatter.cs" />
     <Compile Include="Structures\Doc.cs" />
   </ItemGroup>

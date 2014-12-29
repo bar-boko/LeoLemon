@@ -1,166 +1,256 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using LeoLemon.Index.Models.Interfaces;
 using LeoLemon.Index.Structures;
-using System.Text.RegularExpressions;
 using LeoLemon.Index.Service;
 
 namespace LeoLemon.Index.Models
 {
+    /// <summary>
+    /// Enum  TokenType
+    /// Goal: Token classification
+    /// Each enum represents token needed to classify
+    /// </summary>
     public enum TokenType
     {
         DAYth, DAY, MONTH, YEAR4, YEAR2,
-        NUMBER, FRACTION,
+        NUMBER, FRACTION, NUMBER_PLUS,
         PHRASE, EXPRESSION, NAME,
-        CURRENCY, PRECENTAGE, WORD,
+        CURRENCY, WORD,
         UNKNOWN, THROWAWAY
     }
-    class Parse : IParse
+
+    /// <summary>
+    /// Parser ihnerites from Interface IParse
+    /// Goal : Cut each Text File into sepreat Terms
+    /// </summary>
+    public class Parse : IParse
     {
+
+        /// <summary>
+        ///  _ remover - privet field for the StopWords File
+        ///  _Formatter - Private field for a helper class
+        /// </summary>
         private StopWordRemover _Remover;
         private IFormat _Formatter;
+        private HashSet<string> months;
 
+
+        /// <value>
+        /// The formatter.
+        /// </value>
         public IFormat Formatter
         {
             get { return _Formatter; }
             set { _Formatter = value; }
         }
 
-        #region REGEXes
-        private Regex _Regex_Number = new Regex(@"^(-)?(\d)$");
-        private Regex _Regex_NumberFloat = new Regex(@"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$");
-        private Regex _Regex_NumberFraction = new Regex(@"^(\d/\d)$");
-        private Regex _Regex_NumberFraction2 = new Regex(@"^(\d\\\d)$");
-        private Regex _Regex_NumberThousands = new Regex(@"^(-)?(\d{1,3}((,)\d{3})*)$");
-        private Regex _Regex_Year4 = new Regex(@"^\d{4}$");
-        private Regex _Regex_Year2 = new Regex(@"^\d{2}$");
-        private Regex _Regex_YearComma = new Regex(@"^(,)\d{4}$");
-        private Regex _Regex_Month = new Regex(@"^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JANUARY|FEBRUARY|MARCH|APRIL|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|january|february|march|april|june|july|august|september|october|november|december|January|February|March|April|June|July|August|September|October|November|December)$");
-        private Regex _Regex_Month_Year = new Regex(@"^\d{2}$");
-        private Regex _Regex_Day = new Regex(@"^\d{1,2}$");
-        private Regex _Regex_DayTH = new Regex(@"^\d{1,2}(th|rd|nd|st)$");
-        private Regex _Regex_NumbersGarbage = new Regex(@"^(^(\d)|(\d.\d)|(d{1,3}((,)d{3})*)|(\d/\d)|(\d\\\d))[.,:;]$");
-        private Regex _Regex_Precentage = new Regex(@"^(\d+|\d+.\d+)(%)$");
-        private Regex _Regex_PrecentagePlus = new Regex(@"^(%|Precentage|precentages|prcenetage|PRECENTAGE|PRECENTAGES|Precentages)$");
-        private Regex _Regex_Phrase = new Regex(@"^(([A-Z]+ |[A-Z]+))+$");
-        private Regex _Regex_Name = new Regex(@"^(([A-Z][a-z]+ |[A-Z][a-z]*))+$");
-        private Regex _Regex_Expression = new Regex(@"^(([a-zA-Z])+)((-)([a-zA-Z])+)+$");
-        private Regex _Regex_Word = new Regex(@"[a-z]+$");
-        private Regex _Regex_ThrowAway = new Regex(@"^[/\,.]$");
-        private Regex _Regex_Currency = new Regex(@"^([A-Z]*)(Dollars|Pounds)$");
-        private Regex _Regex_CurrenctAddition = new Regex(@"(m|bn)$");
-        private Regex _Regex_DelimiterText = new Regex(@"^(-)+$");
-        #endregion
-
-        public Parse(StopWordRemover remover)
+        /// <summary>
+        /// Initializes a new instance of the Parse class.
+        /// </summary>
+        /// <param name="remover">The remover.</param>
+        public Parse(StopWordRemover remover, bool toStem)
         {
             _Remover = remover;
-            _Formatter = new LeoFormatter();
+            _Formatter = new LeoFormatter(toStem);
+            months = new HashSet<string>();
+            #region months  #region months
+            months.Add("jan"); months.Add("january");
+            months.Add("feb"); months.Add("february");
+            months.Add("mar"); months.Add("march");
+            months.Add("apr"); months.Add("april");
+            months.Add("may");
+            months.Add("jun"); months.Add("june");
+            months.Add("jul"); months.Add("july");
+            months.Add("aug"); months.Add("august");
+            months.Add("sep"); months.Add("september");
+            months.Add("oct"); months.Add("october");
+            months.Add("nov"); months.Add("november");
+            months.Add("dec"); months.Add("december");
+             #endregion months
         }
 
-        public void Execute(Doc document)
+
+        /// <summary>
+        /// Executes the specified document.
+        /// </summary>
+        /// <param name="document">The document.</param>
+        public void Execute(Doc document, ref Dictionary<string, List<int>> result)
         {
             if (document == null)
                 return;
 
-            document.Header = ParseText(document.Header);
-            document.Text = ParseText(document.Text);
-        }
+            Dictionary<string, List<int>> header = ParseText(document.Header, true);
+            Dictionary<string, List<int>> text = ParseText(document.Text);
 
-        public TokenType Classify(string str, string helper)
-        {
-            if (str == "") return TokenType.THROWAWAY;
-
-            if (_Regex_NumbersGarbage.Match(str).Success)
+            foreach (string key in text.Keys)
             {
-                return Classify(str.Substring(0, str.Length - 1), helper);
+                if (header.ContainsKey(key))
+                    header[key].AddRange(text[key]);
+                else
+                    header[key] = text[key];
             }
 
+            result = header;
+        }
+        public void Execute(List<string> lst, ref Dictionary<string, List<int>> result)
+        {
+            result = ParseText(lst);
+        }
 
-            if (helper != "" && _Regex_Currency.Match(str).Success) return TokenType.CURRENCY;
-            if (_Regex_DayTH.Match(str).Success && _Regex_Month.Match(helper).Success) return TokenType.DAYth;
-            if (helper != "" && _Regex_Month.Match(str).Success ) return TokenType.MONTH;
+        /// <summary>
+        /// Classifies the specified string to a term.
+        /// </summary>
+        /// <param name="str">string -  examined word</param>
+        /// <param name="helper"> helper - the word next to the examined</param>
+        /// <returns>enum TokenType </returns>
+        public TokenType Classify(string str, string helper)
+        {
+            // THROWAWAY - empty token
+            if (string.IsNullOrWhiteSpace(str))
+                return TokenType.THROWAWAY;
 
-            if (_Regex_Expression.Match(str).Success) return TokenType.EXPRESSION;
-            if (_Regex_Phrase.Match(str).Success) return TokenType.PHRASE;
-            if (_Regex_Name.Match(str).Success) return TokenType.NAME;
+            // CURRENCY - exp : USDollars 43.m
+            if (helper != "" && Identifier.Currency(str)
+                && (Identifier.AdditionalNumber(helper) || Identifier.Number(helper)))
+                return TokenType.CURRENCY;
 
-            if (_Regex_Precentage.Match(str).Success) return TokenType.PRECENTAGE;
-            if (_Regex_Word.Match(str).Success) return TokenType.WORD;
-            if (_Regex_NumberFraction.Match(str).Success) return TokenType.FRACTION;
+            // Date - exp: 3th MAY 
+            if (Identifier.DayTH(str) && months.Contains(helper)) return TokenType.DAYth;
+            if (helper != "" && months.Contains(str.ToLower())) return TokenType.MONTH;
 
-            if (_Regex_ThrowAway.Match(str).Success || _Regex_DelimiterText.Match(str).Success) return TokenType.THROWAWAY;
+            if (Identifier.FractionNumber(str)) return TokenType.FRACTION;
+            if (Identifier.Number(str) || Identifier.FloatNumber(str))
+                return TokenType.NUMBER;
 
-            if (_Regex_Year4.Match(str).Success)
+            // Determine if token  EXPRESSION exm: TNT
+            if (Identifier.Expression(str)) return TokenType.EXPRESSION;
+            // Determine if token  PHRASE exm: Air-Port
+            if (Identifier.Phrase(str)) return TokenType.PHRASE;
+            // Determine if token  NAME exm: Leonid Rise
+            if (Identifier.Name(str)) return TokenType.NAME;
+            // Determine if token  Word exm: surprise
+            if (Identifier.Word(str)) return TokenType.WORD;
+            // determine if token  NAME exm: Leonid Rise
+
+            // determine if token  DelimiterText exm: 50-50
+            if (Identifier.Throwaway(str) || Identifier.DelimiterText(str)) return TokenType.THROWAWAY;
+
+            // determine if token  NAME exm: Leonid Rise
+            if (Identifier.Year(str))
                 return TokenType.YEAR4;
 
+            // Use the next word to determine TokenType
             if (helper == "")
             {
-
-                if (_Regex_Number.Match(str).Success || _Regex_NumberThousands.Match(str).Success) return TokenType.NUMBER;
+            if (Identifier.Number(str)) return TokenType.NUMBER;
                 return TokenType.UNKNOWN;
             }
 
-            if (_Regex_Day.Match(str).Success)
+            if (Identifier.Day(str))
             {
-                if (_Regex_Month.Match(helper).Success) return TokenType.DAY;
-                if (_Regex_PrecentagePlus.Match(helper).Success) return TokenType.PRECENTAGE;
-                return TokenType.NUMBER;
+             if (months.Contains(helper)) return TokenType.DAY;
+                            return TokenType.NUMBER;
             }
 
-            if (_Regex_Number.Match(str).Success || _Regex_NumberFloat.Match(str).Success || _Regex_NumberFraction.Match(str).Success || _Regex_NumberFraction2.Match(str).Success ||
-                _Regex_NumberThousands.Match(str).Success)
-            {
-                if (_Regex_PrecentagePlus.Match(helper).Success) return TokenType.PRECENTAGE;
-                return TokenType.NUMBER;
-            }
+            //determine If the string is an AdditionalNumber exm: Frr 426bn
+            if(Identifier.AdditionalNumber(str))
+                return TokenType.NUMBER_PLUS;
+
+            //The term is non of the above UNKNOWN 
             return TokenType.UNKNOWN;
         }
-        private string[] ParseText(string[] tokens)
+
+
+
+        /// <summary>
+        /// Adds to result Dictionary.
+        /// </summary>
+        /// <param name="lst">The LST. contains the term and the num of appreances </param>
+        /// <param name="term">The term.</param>
+        /// <param name="idx">The index.</param>
+        /// <param name="isHeader">if set to <c>true</c> [is header].</param>
+        private void AddToResult(ref Dictionary<string, List<int>> lst, string term, ref int idx, bool isHeader)
+        {
+            term = term.Replace("  ", " ");
+            //term = term.Replace("##", "#");
+            term = term.TrimStart(".,/\\' ".ToCharArray());
+            term = term.TrimEnd(".,/\\' -".ToCharArray());
+
+            if (string.IsNullOrWhiteSpace(term) || _Remover.InStopWords(term))
+                return;
+
+            if(!lst.ContainsKey(term))
+                lst[term] = new List<int>();
+            if (isHeader)
+                lst[term].Add(-1 * idx);
+            else
+                lst[term].Add(idx);
+            idx++;
+        }
+
+
+        /// <summary>
+        /// Parses the text.
+        /// </summary>
+        /// <param name="tokens">The tokens.</param>
+        /// <param name="isHeader">if set to <c>true</c> [is header].</param>
+        /// <returns></returns>
+        private Dictionary<string, List<int>> ParseText(List<string> tokens, bool isHeader = false)
         {
             if (tokens == null)
                 return null;
 
-            List<string> result = new List<string>();
+            Dictionary<string, List<int>> result = new Dictionary<string, List<int>>();
             TokenType tokenT = TokenType.UNKNOWN;
-            int i = 0, j = 0;
+            int i = 0; // The current word
 
 
-            while (i < tokens.Length)
+            int j = 0; // The helper Word
+            int idx = 0;
+
+
+            while (i < tokens.Count)
             {
                 string temp = tokens[i], helper = "";
-                if (i + 1 < tokens.Length)
+                if (i + 1 < tokens.Count)
                     helper = tokens[i + 1];
+
+                // Use the Classify function to find the term enum
 
                 tokenT = Classify(temp, helper);
 
+                //Switch - Case Based on each word Classify
                 switch (tokenT)
                 {
                     #region UNKNOWN
+                     // A simple term without special classification
                     case TokenType.UNKNOWN:
-                        result.Add(_Formatter.FormatUnknown(temp));
+                        AddToResult(ref result, _Formatter.FormatUnknown(temp), ref idx, isHeader);
                         i++;
                         break;
                     #endregion
 
                     #region THROWAWAY
+                  //Unneeded Symbols 
                     case TokenType.THROWAWAY:
                         i++;
                         break;
+                    #endregion
+
+                    #region YEAR4
+                    //Year in 4 digits ex: 1989
                     case TokenType.YEAR4:
                         temp = _Formatter.FormatDate("", "", temp);
-                        result.Add(temp);
+                        AddToResult(ref result, temp, ref idx, isHeader);
                         i++;
                         break;
                     #endregion
 
                     #region WORD
+                    // term that represents a word
                     case TokenType.WORD:
                         temp = _Formatter.FormatWord(temp);
-                        result.Add(temp);
+                        AddToResult(ref result, temp, ref idx, isHeader);
                         i++;
                         break;
                     #endregion
@@ -173,20 +263,20 @@ namespace LeoLemon.Index.Models
 
                             j = i + 1;
 
-                            if (i + 1 < tokens.Length)
-                                if (i + 2 < tokens.Length)
+                            if (i + 1 < tokens.Count)
+                                if (i + 2 < tokens.Count)
                                     tokenT = Classify(tokens[i + 1], tokens[i + 2]);
                                 else
                                     tokenT = Classify(tokens[i + 1], "");
 
 
-                            while (j < tokens.Length && tokenT == TokenType.PHRASE)
+                            while (j < tokens.Count && tokenT == TokenType.PHRASE)
                             {
                                 phrases.Add(tokens[j]);
                                 j++;
 
-                                if (j + 1 < tokens.Length)
-                                    if (j + 2 < tokens.Length)
+                                if (j + 1 < tokens.Count)
+                                    if (j + 2 < tokens.Count)
                                         tokenT = Classify(tokens[j + 1], tokens[j + 2]);
                                     else
                                         tokenT = Classify(tokens[j + 1], "");
@@ -195,11 +285,11 @@ namespace LeoLemon.Index.Models
                             i = j;
 
 
-                            for (int idx = 0; idx < phrases.Count; idx++)
-                                if (_Remover.InStopWords(phrases[idx]))
-                                    phrases.Remove(phrases[idx]);
+                            for (int index = 0; index < phrases.Count; index++)
+                                if (_Remover.InStopWords(phrases[index]))
+                                    phrases.Remove(phrases[index]);
 
-                            result.Add(_Formatter.FormatPhrase(phrases.ToArray()));
+                            AddToResult(ref result, _Formatter.FormatPhrase(phrases.ToArray()), ref idx, isHeader);
                         }
                         break;
                     #endregion
@@ -211,19 +301,19 @@ namespace LeoLemon.Index.Models
                             names.Add(temp);
 
                             j = i + 1;
-                            if (i + 1 < tokens.Length)
-                                if (i + 2 < tokens.Length)
+                            if (i + 1 < tokens.Count)
+                                if (i + 2 < tokens.Count)
                                     tokenT = Classify(tokens[i + 1], tokens[i + 2]);
                                 else
                                     tokenT = Classify(tokens[i + 1], "");
 
-                            while (j < tokens.Length && tokenT == TokenType.NAME)
+                            while (j < tokens.Count && tokenT == TokenType.NAME)
                             {
                                 names.Add(tokens[j]);
                                 j++;
 
-                                if (j + 1 < tokens.Length)
-                                    if (j + 2 < tokens.Length)
+                                if (j + 1 < tokens.Count)
+                                    if (j + 2 < tokens.Count)
                                         tokenT = Classify(tokens[j + 1], tokens[j + 2]);
                                     else
                                         tokenT = Classify(tokens[j + 1], "");
@@ -235,7 +325,7 @@ namespace LeoLemon.Index.Models
                                 tempStr += s + " ";
 
                             if(!_Remover.InStopWords(tempStr.Trim()))
-                                result.Add(_Formatter.FormatNames(names.ToArray()));
+                                AddToResult(ref result, _Formatter.FormatNames(names.ToArray()), ref idx, isHeader);
                         }
                         break;
                     #endregion
@@ -243,7 +333,7 @@ namespace LeoLemon.Index.Models
                     #region EXPRESSION
                     case TokenType.EXPRESSION:
                         string[] exps = temp.Split('-');
-                        result.Add(_Formatter.FormatExpression(exps));
+                        AddToResult(ref result, _Formatter.FormatExpression(exps), ref idx, isHeader);
                         i++;
                         break;
                     #endregion
@@ -251,35 +341,20 @@ namespace LeoLemon.Index.Models
                     #region NUMBER
                     case TokenType.NUMBER:
                         string value = temp;
-                        if (i + 1 < tokens.Length)
+                        if (i + 1 < tokens.Count)
                         {
                             string fraction = "";
-                            if (_Regex_NumberFraction.Match(tokens[i + 1]).Success)
+                            if (Identifier.FractionNumber(tokens[i + 1]))
                             {
                                 fraction = tokens[i + 1];
                                 i += 2;
                             }
                             else
                                 i++;
-                            result.Add(_Formatter.FormatNumber(value, fraction));
+                            AddToResult(ref result, _Formatter.FormatNumber(value, fraction), ref idx, isHeader);
                         }
                         else
                             i++;
-                        break;
-                    #endregion
-
-                    #region PRECENTAGE
-                    case TokenType.PRECENTAGE:
-
-                        if (!_Regex_Number.Match(temp).Success)
-                        {
-                            temp = temp.Replace("%", "");
-                            i++;
-                        }
-                        else
-                            i += 2;
-                        result.Add(_Formatter.FormatPrecentages(temp));
-
                         break;
                     #endregion
 
@@ -289,32 +364,32 @@ namespace LeoLemon.Index.Models
                         string currency = temp;
                         string val = tokens[i + 1];
 
-                        if (_Regex_Number.Match(tokens[i + 1]).Success || _Regex_NumberThousands.Match(tokens[i + 1]).Success)
+                        if (Identifier.Number(tokens[i + 1]))
                         {
-                            if (i + 2 < tokens.Length)
+                            if (i + 2 < tokens.Count)
                             {
-                                if (_Regex_NumberFraction.Match(tokens[i + 2]).Success || _Regex_NumberFraction2.Match(tokens[i + 2]).Success)
+                                if (Identifier.FractionNumber(tokens[i + 2]))
                                 {
-                                    result.Add(_Formatter.FormatCurrency(currency, val, tokens[i + 2]));
+                                    AddToResult(ref result, _Formatter.FormatCurrency(currency, val, tokens[i + 2]), ref idx, isHeader);
                                     i += 3;
                                 }
                                 else
                                 {
-                                    result.Add(_Formatter.FormatCurrency(currency, val));
+                                    AddToResult(ref result, _Formatter.FormatCurrency(currency, val), ref idx, isHeader);
                                     i += 2;
                                 }
                             }
                             else
                             {
-                                result.Add(_Formatter.FormatCurrency(currency, val));
+                                AddToResult(ref result, _Formatter.FormatCurrency(currency, val), ref idx, isHeader);
                                 i += 2;
                             }
                         }
                         else
                         {
-                                string addition = _Regex_Word.Match(tokens[i + 1]).Value;
+                            string addition = Identifier.ReturnCurrencyAddition(tokens[i+1]);
                                 val = val.Substring(0, val.Length - addition.Length);
-                                result.Add(_Formatter.FormatCurrency(currency, val, "", addition));
+                                AddToResult(ref result, _Formatter.FormatCurrency(currency, val, "", addition), ref idx, isHeader);
 
                                 i += 2;
                         }
@@ -328,7 +403,7 @@ namespace LeoLemon.Index.Models
                             string month = tokens[i + 1];
                             string year = tokens[i + 2];
 
-                            result.Add(_Formatter.FormatDate(day, month, year));
+                            AddToResult(ref result, _Formatter.FormatDate(day, month, year), ref idx, isHeader);
                             i += 3;
                         }
                         break;
@@ -341,31 +416,39 @@ namespace LeoLemon.Index.Models
                             string str = tokens[i + 1];
                             str = str.Replace(",", "");
 
-                            if (_Regex_Day.Match(str).Success)
+                            if (Identifier.Day(str))
                             {
-                                if (i + 2 < tokens.Length)
+                                if (i + 2 < tokens.Count)
                                 {
                                     string str2 = tokens[i + 2].Replace(",", "");
-                                    if (_Regex_Year4.Match(str2).Success)
+                                    if (Identifier.Year(str2))
                                     {
-                                        result.Add(_Formatter.FormatDate(str, month, str2));
+                                        AddToResult(ref result, _Formatter.FormatDate(str, month, str2), ref idx, isHeader);
                                         i += 3;
                                     }
                                     else
                                     {
-                                        result.Add(_Formatter.FormatDate(str, month, tokens[i + 3]));
-                                        i += 4;
+                                        if (i + 3 < tokens.Count)
+                                        {
+                                            AddToResult(ref result, _Formatter.FormatDate(str, month, tokens[i + 3]), ref idx, isHeader);
+                                            i += 4;
+                                        }
+                                        else
+                                        {
+                                            AddToResult(ref result, _Formatter.FormatDate(str, month, ""), ref idx, isHeader);
+                                            i += 3;
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    result.Add(_Formatter.FormatDate(str, month, ""));
+                                    AddToResult(ref result, _Formatter.FormatDate(str, month, ""), ref idx, isHeader);
                                     i += 2;
                                 }
                             }
                             else
                             {
-                                result.Add(_Formatter.FormatDate("", month, str));
+                                AddToResult(ref result, _Formatter.FormatDate("", month, str), ref idx, isHeader);
                                 i += 2;
                             }
                         }
@@ -378,10 +461,10 @@ namespace LeoLemon.Index.Models
                             string day = temp;
                             string month = tokens[i + 1];
                             string year = "";
-                            if (i + 2 < tokens.Length)
+                            if (i + 2 < tokens.Count)
                                 year = tokens[i + 2];
 
-                            result.Add(_Formatter.FormatDate(day, month, year));
+                            AddToResult(ref result, _Formatter.FormatDate(day, month, year), ref idx, isHeader);
                             if (year != "")
                                 i += 3;
                             else
@@ -393,8 +476,25 @@ namespace LeoLemon.Index.Models
                     #region FRACTION
                     case TokenType.FRACTION:
                         {
-                            result.Add(_Formatter.FormatNumber("", temp));
+                            AddToResult(ref result, _Formatter.FormatNumber("", temp), ref idx, isHeader);
                             i++;
+                        }
+                        break;
+                    #endregion
+
+                    // Our special case which represtns the form: Frr 342.5m
+                    #region NUMBER PLUS
+                    case TokenType.NUMBER_PLUS:
+                        {
+                            string left  = "", right = "";
+                            double center = 0;
+
+                            Identifier.AdditionalNumber(temp, ref left, ref center, ref right);
+                            if(!string.IsNullOrEmpty(left))
+                                AddToResult(ref result, _Formatter.FormatNumberPlus(left, center, right), ref idx, isHeader);
+                            AddToResult(ref result, string.Format("#{0:#0.000}{1}", center, right), ref idx, isHeader);
+                            i++;
+
                         }
                         break;
                     #endregion
@@ -402,7 +502,7 @@ namespace LeoLemon.Index.Models
 
                 
             }
-            return result.ToArray();
+            return result;
         }
     }
 }

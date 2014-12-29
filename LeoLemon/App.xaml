@@ -3,6 +3,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Style/Skin.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            
+            <Style TargetType="Label">
+                <Setter Property="FontFamily" Value="{StaticResource Font_Main}" />
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="Foreground" Value="{StaticResource Brush_Color_Text}" />
+            </Style>
+            
+            <Style TargetType="Button" BasedOn="{StaticResource Style_Button}">
+                <Setter Property="FontFamily" Value="{StaticResource Font_Main}" />
+            </Style>
+        </ResourceDictionary>
+
     </Application.Resources>
 </Application>

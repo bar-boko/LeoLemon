@@ -51,6 +51,10 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LeoLemon.Engine\LeoLemon.Engine.csproj">
+      <Project>{7681c414-6f23-4547-8cc1-3cc36e15abf3}</Project>
+      <Name>LeoLemon.Engine</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LeoLemon.Index\LeoLemon.Index.csproj">
       <Project>{ca773ae0-eac9-4713-be44-664f58c3ee13}</Project>
       <Name>LeoLemon.Index</Name>
